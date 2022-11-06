@@ -4,17 +4,24 @@
 {% block pageTitle %}Liste des users{% endblock %}
 
 {% block body %}
+    <div class="alert alert-warning">
+        <a href="{{ path('tab', {nb: 7}) }}">Stats Table</a>
+    </div>
     <table class="table">
         <tr class="table-active">
             <td>Name</td>
             <td>Surname</td>
             <td>Age</td>
+            <td>Messages</td>
         </tr>
         {% for user in users %}
         <tr class="table-{% if loop.index is odd %}danger{% else %}warning{% endif %}">
             <td>{{ user.name }}</td>
             <td>{{ user.surname }}</td>
             <td>{{ user.age }}</td>
+            <td>
+                {{ render(controller('App\\Controller\\FirstController::sayHello', {name: user.name, firstname: user.surname})) }}
+            </td>
         </tr>
         {% endfor %}
     </table>

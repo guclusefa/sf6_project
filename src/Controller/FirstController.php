@@ -36,4 +36,11 @@ class FirstController extends AbstractController
         $result = $entier1 * $entier2;
         return new Response("<h1>Le résultat de la multiplication est $result</h1>");
     }
+
+    public function sayHello($name, $firstname){
+        return $this->render('first/hello.html.twig', [
+            'name' => $name,
+            'firstname' => $firstname
+        ]);
+    }
 }
