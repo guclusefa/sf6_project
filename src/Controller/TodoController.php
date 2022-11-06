@@ -27,7 +27,10 @@ class TodoController extends AbstractController
             $session->set('todos', $todos);
             $this -> addFlash('success', "La liste des tâches a été initialisée");
         } 
-        return $this->render('todo/index.html.twig');
+        return $this->render('todo/index.html.twig', [
+            'path' => 'team.jpg',
+            'pathImage' => 'default.jpg',
+        ]);
     }
 
     #[Route(

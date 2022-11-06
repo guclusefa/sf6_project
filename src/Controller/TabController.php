@@ -8,7 +8,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TabController extends AbstractController
 {
-    #[Route('/tab/{nb<\d+>?5}', name: 'app_tab')]
+    #[Route('/tab/{nb<\d+>?5}', name: 'tab')]
     public function index($nb): Response
     {
         $notes = [];
@@ -17,6 +17,19 @@ class TabController extends AbstractController
         }
         return $this->render('tab/index.html.twig', [
             'notes' => $notes,
+        ]);
+    }
+
+    #[Route('/tab/users', name: 'tab_users')]
+    public function users(): Response
+    {
+        $users = [
+            ['name' => 'Jean', 'surname' => 'Dupont', 'age' => 20,],
+            ['name' => 'Pierre','surname' => 'Durand','age' => 30,],
+            ['name' => 'Paul', 'surname' => 'Martin', 'age' => 40,],
+        ];
+        return $this->render('tab/users.html.twig', [
+            'users' => $users,
         ]);
     }
 }
