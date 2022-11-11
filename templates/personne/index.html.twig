@@ -9,29 +9,30 @@
     <div class="col-3">
         <p>{{ personne.firstname }} {{ personne.name }} a {{ personne.age }} ans</p>
         <a href="{{ path('personne_show', {'id': personne.id}) }}">Détail</a>
+        <a href="{{ path('personne_delete', {'id': personne.id}) }}">Supprimer</a>
     </div>
     {% endfor %}
 </div>
-{% if isPaginated %}
+{% if isPaginated is defined and isPaginated %}
 <div class="row mt-3">
     <nav aria-label="col Page navigation example">
-    <ul class="pagination">
-        {% if page != 1 %}
-            <li class="page-item">
-                <a class="page-link" href="{{ path('personne_all', {page: page-1, nb: nb}) }}">Previous</a>
-            </li>
-        {% endif %}
-        {% for i in range(1, nbPage) %}
-            <li class="page-item">
-                <a class="page-link" href="{{ path('personne_all', {page: i, nb: nb}) }}">{{ i }}</a>
-            </li>
-        {% endfor %}
-        {% if page != nbPage %}
-            <li class="page-item">
-                <a class="page-link" href="{{ path('personne_all', {page: page+1, nb: nb}) }}">Next</a>
-            </li>
-        {% endif %}
-    </ul>
+        <ul class="pagination">
+            {% if page != 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('personne_all', {page: page-1, nb: nb}) }}">Previous</a>
+                </li>
+            {% endif %}
+            {% for i in range(1, nbPage) %}
+                <li class="page-item {% if i == page %}active{% endif %}">
+                    <a class="page-link" href="{{ path('personne_all', {page: i, nb: nb}) }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+            {% if page != nbPage %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('personne_all', {page: page+1, nb: nb}) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
     </nav>
 </div>
 {% endif %}
