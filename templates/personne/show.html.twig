@@ -1,0 +1,12 @@
+{% extends 'template.html.twig' %}
+
+{% block title %}Hello PersonneController!{% endblock %}
+{% block pageTitle %}Hello PersonneController!{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-3">
+        <p>{{ personne.firstname }} {{ personne.name }} a {{ personne.age }} ans</p>
+    </div>
+</div>
+{% endblock %}
