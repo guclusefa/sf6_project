@@ -4,8 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Personne;
 use App\Form\PersonneType;
+use App\Service\Helpers;
+use App\Service\UploaderService;
 use App\Service\UploadImage;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -17,6 +20,10 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/personne')]
 class PersonneController extends AbstractController
 {
+    public function __construct(private LoggerInterface $logger, private Helpers $helpers)
+    {
+    }
+
     #[Route('/', name: 'personne')]
     public function indexPersonne(ManagerRegistry $doctrine): Response
     {
@@ -32,6 +39,7 @@ class PersonneController extends AbstractController
     #[Route('/all/{page?1}/{nb?12}', name: 'personne_all')]
     public function allPersonne(ManagerRegistry $doctrine, $page, $nb): Response
     {
+        echo ($this->helpers->sayCoucou());
         // get repository for Personne
         $repository = $doctrine->getRepository(Personne::class);
         // get prenom par name, tries asc, limit nb de pages, commencent a la nb element, page -1*nb
@@ -88,7 +96,7 @@ class PersonneController extends AbstractController
     }
 
     #[Route('/edit/{id?0}', name: 'personne_edit')]
-    public function editPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request, SluggerInterface $slugger): Response
+    public function editPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request, UploaderService $uploaderService): Response
     {
         $new = false;
         if (!$personne) {
@@ -106,8 +114,9 @@ class PersonneController extends AbstractController
         // is submitted
         if ($form->isSubmitted() && $form->isValid()) {
             $photo = $form->get('photo')->getData();
-            $targetDirectory = $this->getParameter('personne_directory');
             if ($photo) {
+                $targetDirectory = $this->getParameter('personne_directory');
+                /*
                 // uploadImage service
                 $uploadImage = new UploadImage();
 
@@ -117,7 +126,8 @@ class PersonneController extends AbstractController
                 }
 
                 $newFilename = $uploadImage->uploadImagePersonne($photo, $slugger, $targetDirectory);
-                $personne->setImage($newFilename);
+                */
+                $personne->setImage($uploaderService->uploadFile($photo, $targetDirectory));
             }
 
             // manager
