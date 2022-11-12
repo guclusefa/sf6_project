@@ -3,12 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Form\PersonneType;
+use App\Service\UploadImage;
 use Doctrine\Persistence\ManagerRegistry;
-use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/personne')]
 class PersonneController extends AbstractController
@@ -31,7 +35,6 @@ class PersonneController extends AbstractController
         // get repository for Personne
         $repository = $doctrine->getRepository(Personne::class);
         // get prenom par name, tries asc, limit nb de pages, commencent a la nb element, page -1*nb
-        /** @var \App\Entity\Personne; $repository **/
         $nbPersonne = $repository->count([]);
         $nbPage = ceil($nbPersonne / $nb);
         $personnes = $repository->findBy([], [], $nb, ($page - 1) * $nb);
@@ -48,7 +51,6 @@ class PersonneController extends AbstractController
     #[Route('/age/{ageMin}/{ageMax}', name: 'personne_age')]
     public function allPersonneAge(ManagerRegistry $doctrine, $ageMin, $ageMax): Response
     {
-        /** @var \App\Entity\Personne; $repository **/
         $repository = $doctrine->getRepository(Personne::class);
         $personnes = $repository->findPersonneByAgeInterval($ageMin, $ageMax);
         return $this->render('personne/index.html.twig', [
@@ -59,7 +61,6 @@ class PersonneController extends AbstractController
     #[Route('/stats/age/{ageMin}/{ageMax}', name: 'personne_age_stats')]
     public function statsPersonneAge(ManagerRegistry $doctrine, $ageMin, $ageMax): Response
     {
-        /** @var \App\Entity\Personne; $repository **/
         $repository = $doctrine->getRepository(Personne::class);
         $stats = $repository->statsPersonneByAgeInterval($ageMin, $ageMax);
         return $this->render('personne/stats.html.twig', [
@@ -86,24 +87,58 @@ class PersonneController extends AbstractController
         ]);
     }
 
-    #[Route('/add', name: 'personne_add')]
-    public function addPersonne(ManagerRegistry $doctrine): Response
+    #[Route('/edit/{id?0}', name: 'personne_edit')]
+    public function editPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request, SluggerInterface $slugger): Response
     {
-        // manager
-        $entityManger = $doctrine->getManager();
-        // create personne
-        $personne = new Personne();
-        $personne->setFirstname('John');
-        $personne->setName('Doe');
-        $personne->setAge(42);
-        // insertion dans transaction
-        $entityManger->persist($personne);
-        // commit transaction
-        $entityManger->flush();
+        $new = false;
+        if (!$personne) {
+            $new = true;
+            $personne = new Personne();
+        }
+        $form = $this->createForm(PersonneType::class, $personne);
+        // remove
+        $form->remove('createdAt');
+        $form->remove('updatedAt');
+        $form->remove('deletedAt');
 
-        return $this->render('personne/show.html.twig', [
-            'personne' => $personne,
-        ]);
+        // handle request
+        $form->handleRequest($request);
+        // is submitted
+        if ($form->isSubmitted() && $form->isValid()) {
+            $photo = $form->get('photo')->getData();
+            $targetDirectory = $this->getParameter('personne_directory');
+            if ($photo) {
+                // uploadImage service
+                $uploadImage = new UploadImage();
+
+                //delete old photo
+                if ($personne->getImage() && file_exists($targetDirectory . '/' . $personne->getImage())) {
+                    $uploadImage->deleteImagePersonne($personne->getImage(), $targetDirectory);
+                }
+
+                $newFilename = $uploadImage->uploadImagePersonne($photo, $slugger, $targetDirectory);
+                $personne->setImage($newFilename);
+            }
+
+            // manager
+            $manager = $doctrine->getManager();
+            $manager->persist($personne);
+            $manager->flush();
+
+            // msg
+            if ($new) {
+                $message = 'Personne ajoutée avec succès';
+            } else {
+                $message = 'Personne modifiée avec succès';
+            }
+            $this->addFlash('success', $message);
+            return $this->redirectToRoute('personne_show', ['id' => $personne->getId()]);
+        } else {
+            // render
+            return $this->render('personne/add.html.twig', [
+                'form' => $form->createView(),
+            ]);
+        }
     }
 
     #[Route('/update/{id}/{name}/{firstname}/{age}', name: 'personne_update')]

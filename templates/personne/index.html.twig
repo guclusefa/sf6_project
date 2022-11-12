@@ -9,6 +9,7 @@
     <div class="col-3">
         <p>{{ personne.firstname }} {{ personne.name }} a {{ personne.age }} ans</p>
         <a href="{{ path('personne_show', {'id': personne.id}) }}">Détail</a>
+        <a href="{{ path('personne_edit', {'id': personne.id}) }}">Edit</a>
         <a href="{{ path('personne_delete', {'id': personne.id}) }}">Supprimer</a>
     </div>
     {% endfor %}
