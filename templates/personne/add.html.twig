@@ -1,7 +1,7 @@
 {% extends 'template.html.twig' %}
 
 {% block body %}
-    {{ form_start(form) }}
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
     <div class="row">
         <div class="col">{{ form_row(form.firstname) }}</div>
         <div class="col">{{ form_row(form.name) }}</div>
@@ -11,6 +11,10 @@
 {% endblock %}
 
 {% block title %}
+    edit user
+{% endblock %}
 
+{% block javascripts %}
+    <script src="{{ asset('assets/js/select2.js') }}"></script>
 {% endblock %}
 

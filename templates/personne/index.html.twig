@@ -6,11 +6,16 @@
 {% block body %}
 <div class="row">
     {% for personne in personnes %}
-    <div class="col-3">
-        <p>{{ personne.firstname }} {{ personne.name }} a {{ personne.age }} ans</p>
-        <a href="{{ path('personne_show', {'id': personne.id}) }}">Détail</a>
-        <a href="{{ path('personne_edit', {'id': personne.id}) }}">Edit</a>
-        <a href="{{ path('personne_delete', {'id': personne.id}) }}">Supprimer</a>
+    <div class="col-3 mt-3">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{ personne.firstname }} {{ personne.name }}</h5>
+                <p class="card-text">{{ personne.age }} ans</p>
+                <a href="{{ path('personne_show', {'id': personne.id}) }}"><i class="fa-solid fa-circle-info"></i></a>
+                <a href="{{ path('personne_edit', {'id': personne.id}) }}"><i class="fa-solid fa-user-pen"></i></a>
+                <a href="{{ path('personne_delete', {'id': personne.id}) }}"><i class="fa-solid fa-user-xmark"></i></a>
+            </div>
+        </div>
     </div>
     {% endfor %}
 </div>

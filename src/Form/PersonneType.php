@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Hobby;
+use App\Entity\Job;
 use App\Entity\Personne;
 use App\Entity\Profile;
 use Doctrine\ORM\EntityRepository;
@@ -26,10 +27,14 @@ class PersonneType extends AbstractType
             ->add('updatedAt')
             ->add('deletedAt')
             ->add('profile', EntityType::class, [
-                'expanded' => true,
+                'required' => false,
                 'class' => Profile::class,
+                'attr' => [
+                    'class' => 'select2',
+                ],
             ])
             ->add('hobbies', EntityType::class, [
+                'required' => false,
                 'expanded' => false,
                 'multiple' => true,
                 'class' => Hobby::class,
@@ -41,8 +46,17 @@ class PersonneType extends AbstractType
                     return $hobby->getDesignation() . ' (' . $hobby->getId() . ')';
                 },
                 'label' => 'Hobbies LABEL',
+                'attr' => [
+                    'class' => 'select2',
+                ],
             ])
-            ->add('job')
+            ->add('job', EntityType::class, [
+                'required' => false,
+                'class' => Job::class,
+                'attr' => [
+                    'class' => 'select2',
+                ],
+            ])
             ->add('photo', FileType::class, [
                 'label' => 'Votre image de profil (Des fichiers images uniquement)',
                 'mapped' => false,
@@ -55,7 +69,7 @@ class PersonneType extends AbstractType
                             'image/png',
                             'image/gif',
                         ],
-                        'mimeTypesMessage' => 'Please upload a valid image',
+                        'mimeTypesMessage' => 'Télécharger une image valide',
                     ])
                 ],
             ])
