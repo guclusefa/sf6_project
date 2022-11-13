@@ -142,18 +142,19 @@ class PersonneController extends AbstractController
                 $targetDirectory = $this->getParameter('personne_directory');
                 $personne->setImage($uploaderService->uploadFile($photo, $targetDirectory));
             }
+            // msg
+            if ($new) {
+                $message = 'ajoutée avec succès';
+                $personne->setCreatedBy($this->getUser());
+            } else {
+                $message = 'modifiée avec succès';
+            }
 
             // manager
             $manager = $doctrine->getManager();
             $manager->persist($personne);
             $manager->flush();
 
-            // msg
-            if ($new) {
-                $message = 'ajoutée avec succès';
-            } else {
-                $message = 'modifiée avec succès';
-            }
             $mailMessage = $personne->getFirstname() . ' ' . $personne->getName() . " " . $message;
             $mailer->sendEmail(content: $mailMessage);
 

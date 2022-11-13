@@ -94,10 +94,14 @@
 							</a>
 						</div>
 					</div>
-					<div class="sb-sidenav-footer">
-						<div class="small">Logged in as:</div>
-						Start Bootstrap
-					</div>
+						<div class="sb-sidenav-footer">
+							<div class="small">Logged in as:</div>
+							{% if app.user %}
+								{{ app.user.email }}
+							{% else %}
+								{{ 'Anonymous' }}
+							{% endif %}
+						</div>
 				</nav>
 			</div>
 			<div id="layoutSidenav_content">
