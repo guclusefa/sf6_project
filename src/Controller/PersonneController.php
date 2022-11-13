@@ -11,6 +11,7 @@ use App\Service\UploaderService;
 use App\Service\UploadImage;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -21,7 +22,7 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-#[Route('/personne')]
+#[Route('/personne'), IsGranted('ROLE_USER')]
 class PersonneController extends AbstractController
 {
     public function __construct(private LoggerInterface $logger, private Helpers $helpers)
@@ -49,7 +50,7 @@ class PersonneController extends AbstractController
         $pdf = $pdf->generatePdf($html);
     }
 
-    #[Route('/all/{page?1}/{nb?12}', name: 'personne_all')]
+    #[Route('/all/{page?1}/{nb?12}', name: 'personne_all'), IsGranted('ROLE_USER')]
     public function allPersonne(ManagerRegistry $doctrine, $page, $nb): Response
     {
         echo ($this->helpers->sayCoucou());
@@ -122,6 +123,7 @@ class PersonneController extends AbstractController
         MailerInterface $mailerInterface,
     ): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $new = false;
         if (!$personne) {
             $new = true;
@@ -192,7 +194,7 @@ class PersonneController extends AbstractController
         }
     }
 
-    #[Route('/delete/{id}', name: 'personne_delete')]
+    #[Route('/delete/{id}', name: 'personne_delete'), IsGranted('ROLE_ADMIN')]
     public function deletePersonne(ManagerRegistry $doctrine, Personne $personne = null): RedirectResponse
     {
         if (!$personne) {

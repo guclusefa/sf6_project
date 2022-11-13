@@ -12,8 +12,10 @@
                 <h5 class="card-title">{{ personne.firstname }} {{ personne.name }}</h5>
                 <p class="card-text">{{ personne.age }} ans</p>
                 <a href="{{ path('personne_show', {'id': personne.id}) }}"><i class="fa-solid fa-circle-info"></i></a>
-                <a href="{{ path('personne_edit', {'id': personne.id}) }}"><i class="fa-solid fa-user-pen"></i></a>
-                <a href="{{ path('personne_delete', {'id': personne.id}) }}"><i class="fa-solid fa-user-xmark"></i></a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('personne_edit', {'id': personne.id}) }}"><i class="fa-solid fa-user-pen"></i></a>
+                    <a href="{{ path('personne_delete', {'id': personne.id}) }}"><i class="fa-solid fa-user-xmark"></i></a>
+                {% endif %}
             </div>
         </div>
     </div>
