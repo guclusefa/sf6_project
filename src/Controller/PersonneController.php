@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Personne;
 use App\Form\PersonneType;
 use App\Service\Helpers;
+use App\Service\MailService;
+use App\Service\PdfService;
 use App\Service\UploaderService;
 use App\Service\UploadImage;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,6 +16,8 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -25,15 +29,24 @@ class PersonneController extends AbstractController
     }
 
     #[Route('/', name: 'personne')]
-    public function indexPersonne(ManagerRegistry $doctrine): Response
+    public function indexPersonne(ManagerRegistry $doctrine, MailerInterface $mailer): Response
     {
         // get repository for Personne
         $repository = $doctrine->getRepository(Personne::class);
         // get all Personne
         $personnes = $repository->findAll();
+
         return $this->render('personne/index.html.twig', [
             'personnes' => $personnes,
         ]);
+    }
+
+    #[Route('/pdf/{id}', name: 'personne_pdf')]
+    public function generatePdfPersonne(Personne $personne = null, PdfService $pdf){
+        $html = $this->render('personne/show.html.twig', [
+            'personne' => $personne,
+        ]);
+        $pdf = $pdf->generatePdf($html);
     }
 
     #[Route('/all/{page?1}/{nb?12}', name: 'personne_all')]
@@ -90,13 +103,24 @@ class PersonneController extends AbstractController
             $this->addFlash('error', 'Personne pas trouvée');
             return $this->redirectToRoute('personne');
         }
+
+        // pdf
+
+
         return $this->render('personne/show.html.twig', [
             'personne' => $personne,
         ]);
     }
 
     #[Route('/edit/{id?0}', name: 'personne_edit')]
-    public function editPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request, UploaderService $uploaderService): Response
+    public function editPersonne(
+        Personne $personne = null,
+        ManagerRegistry $doctrine,
+        Request $request,
+        UploaderService $uploaderService,
+        MailService $mailer,
+        MailerInterface $mailerInterface,
+    ): Response
     {
         $new = false;
         if (!$personne) {
@@ -116,17 +140,6 @@ class PersonneController extends AbstractController
             $photo = $form->get('photo')->getData();
             if ($photo) {
                 $targetDirectory = $this->getParameter('personne_directory');
-                /*
-                // uploadImage service
-                $uploadImage = new UploadImage();
-
-                //delete old photo
-                if ($personne->getImage() && file_exists($targetDirectory . '/' . $personne->getImage())) {
-                    $uploadImage->deleteImagePersonne($personne->getImage(), $targetDirectory);
-                }
-
-                $newFilename = $uploadImage->uploadImagePersonne($photo, $slugger, $targetDirectory);
-                */
                 $personne->setImage($uploaderService->uploadFile($photo, $targetDirectory));
             }
 
@@ -137,10 +150,13 @@ class PersonneController extends AbstractController
 
             // msg
             if ($new) {
-                $message = 'Personne ajoutée avec succès';
+                $message = 'ajoutée avec succès';
             } else {
-                $message = 'Personne modifiée avec succès';
+                $message = 'modifiée avec succès';
             }
+            $mailMessage = $personne->getFirstname() . ' ' . $personne->getName() . " " . $message;
+            $mailer->sendEmail(content: $mailMessage);
+
             $this->addFlash('success', $message);
             return $this->redirectToRoute('personne_show', ['id' => $personne->getId()]);
         } else {
