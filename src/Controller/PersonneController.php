@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Event\AddPersonneEvent;
 use App\Form\PersonneType;
 use App\Service\Helpers;
 use App\Service\MailService;
@@ -13,6 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,9 +27,12 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/personne'), IsGranted('ROLE_USER')]
 class PersonneController extends AbstractController
 {
-    public function __construct(private LoggerInterface $logger, private Helpers $helpers)
-    {
-    }
+    public function __construct(
+        private LoggerInterface $logger,
+        private Helpers $helpers,
+        private EventDispatcherInterface $eventDispatcher,
+    )
+    {}
 
     #[Route('/', name: 'personne')]
     public function indexPersonne(ManagerRegistry $doctrine, MailerInterface $mailer): Response
@@ -156,6 +161,13 @@ class PersonneController extends AbstractController
             $manager = $doctrine->getManager();
             $manager->persist($personne);
             $manager->flush();
+
+            if ($new) {
+                // on a cree notre evenement
+                $addPersonneEvent = new AddPersonneEvent($personne);
+                // on dispatche notre evenement
+                $this->eventDispatcher->dispatch($addPersonneEvent, AddPersonneEvent::ADD_PERSONNE_EVENT);
+            }
 
             $mailMessage = $personne->getFirstname() . ' ' . $personne->getName() . " " . $message;
             $mailer->sendEmail(content: $mailMessage);
