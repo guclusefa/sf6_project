@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Personne;
 use App\Event\AddPersonneEvent;
+use App\Event\ListAllPersonneEvent;
 use App\Form\PersonneType;
 use App\Service\Helpers;
 use App\Service\MailService;
@@ -42,6 +43,8 @@ class PersonneController extends AbstractController
         // get all Personne
         $personnes = $repository->findAll();
 
+        $listAllPersonneEvent = new ListAllPersonneEvent(count($personnes));
+        $this->eventDispatcher->dispatch($listAllPersonneEvent, ListAllPersonneEvent::LIST_ALL_PERSONNE_EVENT);
         return $this->render('personne/index.html.twig', [
             'personnes' => $personnes,
         ]);
