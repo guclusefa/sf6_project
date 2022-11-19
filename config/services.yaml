@@ -24,6 +24,7 @@ services:
     App\EventListener\PersonneListener:
         tags:
             - { name: kernel.event_listener, event: personne.add}
+            # - { name: kernel.event_listener, event: kernel.request, method: logKernetRequest, priority: -2000 }
             - { name: kernel.event_listener, event: personne.list.all, method: onListAllPersonne }
             - { name: kernel.event_listener, event: personne.list.all, method: onListAllPersonne2, priority: 100 }
     # add more service definitions when explicit configuration is needed
