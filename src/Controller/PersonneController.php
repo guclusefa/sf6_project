@@ -172,9 +172,6 @@ class PersonneController extends AbstractController
                 $this->eventDispatcher->dispatch($addPersonneEvent, AddPersonneEvent::ADD_PERSONNE_EVENT);
             }
 
-            $mailMessage = $personne->getFirstname() . ' ' . $personne->getName() . " " . $message;
-            $mailer->sendEmail(content: $mailMessage);
-
             $this->addFlash('success', $message);
             return $this->redirectToRoute('personne_show', ['id' => $personne->getId()]);
         } else {
